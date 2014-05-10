@@ -4,6 +4,9 @@
 ## David Bell, d.bell@soton.ac.uk
 ## October 2013
 
+## TODO:
+##  - Username and password checking
+
 ## python-simplejson
 ## MySQL-python
 
@@ -13,6 +16,7 @@ import ConfigParser
 import re, os, pickle
 import MySQLdb as mysql
 from datetime import timedelta
+import platform
 
 try:
     import json
@@ -180,6 +184,9 @@ elif function == 'stats':
 
 		cur.execute('SELECT VERSION();')
 		db_version = cur.fetchone()
+
+		cur.execute("SHOW VARIABLES LIKE '%version_comment%';")
+		vcom = str(cur.fetchone()[1])
 		
 	except mysql.Error, e:
 		print json.dumps({'status': 1, 'error': 'Internal error: MySQL error: ' + str(e)})
@@ -215,6 +222,9 @@ elif function == 'stats':
 		print json.dumps({'status': 1, 'error': 'Internal error: No stats file could be loaded: ' + str(e)})
 		sys.exit()
 
+	# platform info
+	distro = platform.linux_distribution()
+
 	# Print out JSON
 	print json.dumps(
 	{
@@ -229,6 +239,10 @@ elif function == 'stats':
 		'db_sizes_timestamp': file_stat.st_mtime,
 		'db_version': db_version[0],
 		'db_uptime': db_uptime,
+		'db_comment': vcom,
+		'os_name': distro[0],
+		'os_version': distro[1],
+		'os_codename': distro[2],
 	})
 	sys.exit()
 
